@@ -1,0 +1,79 @@
+[project]
+name = "conditional-image-embeddings"
+version = "0.1.0"
+description = "Training-free Conditional Image Embedding Framework from Large Vision Language Models"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "accelerate==1.10.1",
+    "pandas==2.3.2",
+    "pillow==11.3.0",
+    "pydantic==2.12.5",
+    "pytorch-metric-learning[with-hooks-cpu]==2.9.0",
+    "scipy==1.16.2",
+    "sentence-transformers==5.1.0",
+    "torch==2.8.0",
+    "torchvision==0.23.0",
+    "tqdm==4.67.1",
+    "transformers==4.56.1",
+    "webcolors==1.5",
+]
+
+[dependency-groups]
+dev = [
+    "mypy==2.1.0",
+    "poethepoet==0.46.0",
+    "ruff==0.15.15",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+exclude = [
+    ".cache",
+    ".git",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "datasets",
+    "embeddings",
+    "utils/indirect",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["entities", "processors", "utils"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["inference.py", "entities", "processors", "utils"]
+exclude = ["utils/indirect"]
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = [
+    "processors.clip",
+    "processors.dior",
+    "processors.generative",
+    "utils.get_models",
+]
+ignore_errors = true
+
+[tool.poe.tasks.indirect-setup]
+shell = """
+set -eu
+repo="${INDIRECT_REPO_URL:-https://github.com/LSX-UniWue/InDiReCT.git}"
+dest="${INDIRECT_DIR:-utils/indirect}"
+
+if [ -d "$dest/.git" ]; then
+    git -C "$dest" pull --ff-only
+else
+    mkdir -p "$(dirname "$dest")"
+    git clone "$repo" "$dest"
+fi
+"""
+help = "Clone or update the external InDiReCT repository under utils/indirect."
